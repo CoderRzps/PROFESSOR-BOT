@@ -149,13 +149,12 @@ async def start(client, message):
 
     await message.reply("INVALID FILE")
 
-
-
+# Settings Command
 @Client.on_message(filters.command("settings") & filters.user(ADMINS))
 async def settings(client, message):
     grp_id = message.chat.id
     settings = await get_settings(grp_id)
-    
+
     if settings:
         buttons = [
             [
@@ -174,10 +173,11 @@ async def settings(client, message):
                 InlineKeyboardButton("🔙 Bᴀᴄᴋ", callback_data='settings_back')
             ]
         ]
-        await message.reply_text("Cʜᴏsᴇ Yᴏᴜʀ Sᴇᴛᴛɪɴɢs:", reply_markup=InlineKeyboardMarkup(buttons))
+        await message.reply_text("Cʜᴏᴏsᴇ Yᴏᴜʀ Sᴇᴛᴛɪɴɢs:", reply_markup=InlineKeyboardMarkup(buttons))
     else:
-        await message.reply_text("Nᴏ sᴇᴛᴛɪɴɢs fᴏʀ ᴛʜɪs gʀᴏᴜᴘ.")
+        await message.reply_text("Nᴏ sᴇᴛᴛɪɴɢs ғᴏʀ ᴛʜɪs ɢʀᴏᴜᴘ.")
 
+# Update Settings via Callback Query
 @Client.on_callback_query(filters.regex(r'^setgs'))
 async def update_settings(bot, callback):
     data = callback.data.split('#')
@@ -187,8 +187,9 @@ async def update_settings(bot, callback):
 
     current_settings = await get_settings(grp_id)
     if current_settings is None:
-        return await callback.answer("Nᴏ sᴇᴛᴛɪɴɢs fᴏʀ ᴛʜɪs gʀᴏᴜᴘ.")
+        return await callback.answer("Nᴏ sᴇᴛᴛɪɴɢs ғᴏʀ ᴛʜɪs ɢʀᴏᴜᴘ.")
 
+    # Toggle the setting based on callback data
     if setting == 'button':
         current_settings['button'] = not current_settings['button']
     elif setting == 'botpm':
@@ -201,19 +202,23 @@ async def update_settings(bot, callback):
     await save_group_settings(grp_id, current_settings)
     await callback.answer("Sᴇᴛᴛɪɴɢs Uᴘᴅᴀᴛᴇᴅ!", show_alert=True)
 
-    # Optionally, refresh settings display
+    # Refresh settings display
     await settings(bot, callback.message)
 
+# Back button for settings
 @Client.on_callback_query(filters.regex(r'^settings_back'))
 async def settings_back(bot, callback):
     await callback.message.delete()
     await settings(bot, callback.message)
 
+# Save Template Command
 @Client.on_message(filters.command('set_template'))
 async def save_template(client, message):
     sts = await message.reply("Cʜᴇᴄᴋɪɴɢ Tᴇᴍᴘʟᴀᴛᴇ")
     userid = message.from_user.id if message.from_user else None
-    if not userid: return await message.reply(f"Yᴏᴜ Aʀᴇ Aɴᴏɴʏᴍᴏᴜs Aᴅᴍɪɴ. Usᴇ /connect {message.chat.id} Iɴ PM")
+    if not userid: 
+        return await message.reply(f"Yᴏᴜ Aʀᴇ Aɴᴏɴʏᴍᴏᴜs Aᴅᴍɪɴ. Usᴇ /connect {message.chat.id} Iɴ PM")
+    
     chat_type = message.chat.type
     if chat_type == enums.ChatType.PRIVATE:
         grpid = await active_connection(str(userid))
@@ -223,30 +228,37 @@ async def save_template(client, message):
                 chat = await client.get_chat(grpid)
                 title = chat.title
             except:
-                return await message.reply_text("Mᴀᴋᴇ Sᴜʀᴇ I'ᴍ Pʀᴇsᴇɴᴛ Iɴ Yᴏᴜʀ Gʀᴏᴜᴘ !!", quote=True)
+                return await message.reply_text("Mᴀᴋᴇ Sᴜʀᴇ I'ᴍ Pʀᴇsᴇɴᴛ Iɴ Yᴏᴜʀ Gʀᴏᴜᴘ!", quote=True)
         else:
             return await message.reply_text("I'ᴍ Nᴏᴛ Cᴏɴɴᴇᴄᴛᴇᴅ Tᴏ Aɴʏ Gʀᴏᴜᴘs!", quote=True)
     elif chat_type in [enums.ChatType.GROUP, enums.ChatType.SUPERGROUP]:
         grp_id = message.chat.id
         title = message.chat.title
-    else: return
+    else: 
+        return
+    
     st = await client.get_chat_member(grp_id, userid)
     if (
         st.status != enums.ChatMemberStatus.ADMINISTRATOR
         and st.status != enums.ChatMemberStatus.OWNER
         and str(userid) not in ADMINS
     ): return
-    if len(message.command) < 2: return await sts.edit("No Iɴᴩᴜᴛ!!")
+    
+    if len(message.command) < 2: 
+        return await sts.edit("No Iɴᴩᴜᴛ!!")
+    
     template = message.text.split(" ", 1)[1]
     await save_group_settings(grp_id, 'template', template)
-    await sts.edit(f"Sᴜᴄᴄᴇssғᴜʟʟʏ Cʜᴀɴɢᴇᴅ Tᴇᴍᴘʟᴀᴛᴇ Fᴏʀ {title} Tᴏ\n\n{template}")
+    await sts.edit(f"Sᴜᴄᴄᴇssғᴜʟʟʏ Cʜᴀɴɢᴇᴅ Tᴇᴍᴘʟᴀᴛᴇ ғᴏʀ {title} Tᴏ\n\n{template}")
 
-
+# Get Template Command
 @Client.on_message(filters.command('get_template'))
-async def geg_template(client, message):
+async def get_template(client, message):
     sts = await message.reply("Cʜᴇᴄᴋɪɴɢ Tᴇᴍᴘʟᴀᴛᴇ")
     userid = message.from_user.id if message.from_user else None
-    if not userid: return await message.reply(f"Yᴏᴜ Aʀᴇ Aɴᴏɴʏᴍᴏᴜs Aᴅᴍɪɴ. Usᴇ /connect {message.chat.id} Iɴ PM")
+    if not userid: 
+        return await message.reply(f"Yᴏᴜ Aʀᴇ Aɴᴏɴʏᴍᴏᴜs Aᴅᴍɪɴ. Usᴇ /connect {message.chat.id} Iɴ PM")
+    
     chat_type = message.chat.type
     if chat_type == enums.ChatType.PRIVATE:
         grpid = await active_connection(str(userid))
@@ -256,19 +268,22 @@ async def geg_template(client, message):
                 chat = await client.get_chat(grpid)
                 title = chat.title
             except:
-                return await message.reply_text("Mᴀᴋᴇ Sᴜʀᴇ I'ᴍ Pʀᴇsᴇɴᴛ Iɴ Yᴏᴜʀ Gʀᴏᴜᴘ !!", quote=True)
+                return await message.reply_text("Mᴀᴋᴇ Sᴜʀᴇ I'ᴍ Pʀᴇsᴇɴᴛ Iɴ Yᴏᴜʀ Gʀᴏᴜᴘ!", quote=True)
         else:
             return await message.reply_text("I'ᴍ Nᴏᴛ Cᴏɴɴᴇᴄᴛᴇᴅ Tᴏ Aɴʏ Gʀᴏᴜᴘs!", quote=True)
     elif chat_type in [enums.ChatType.GROUP, enums.ChatType.SUPERGROUP]:
         grp_id = message.chat.id
         title = message.chat.title
-    else: return
+    else: 
+        return
+    
     st = await client.get_chat_member(grp_id, userid)
     if (
         st.status != enums.ChatMemberStatus.ADMINISTRATOR
         and st.status != enums.ChatMemberStatus.OWNER
         and str(userid) not in ADMINS
     ): return
+    
     settings = await get_settings(grp_id)
-    template = settings['template']
-    await sts.edit(f"Cᴜʀʀᴇɴᴛ Tᴇᴍᴘʟᴀᴛᴇ Fᴏʀ {title} Iꜱ\n\n{template}")
+    template = settings.get('template', 'No Template Set')
+    await sts.edit(f"Cᴜʀʀᴇɴᴛ Tᴇᴍᴘʟᴀᴛᴇ ғᴏʀ {title} Iꜱ\n\n{template}")
