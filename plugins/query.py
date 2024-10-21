@@ -577,6 +577,8 @@ async def cb_handler(client: Client, query: CallbackQuery):
         await query.edit_message_media(InputMediaPhoto(random.choice(PICS), script.STATUS_TXT.format(total, users, chats, monsize, free), enums.ParseMode.HTML), reply_markup=InlineKeyboardMarkup(buttons))
     
     # Callback for handling settings update
+if <condition>:
+    # some code
 elif query.data.startswith("setgs"):
     ident, set_type, status, grp_id = query.data.split("#")
 
@@ -604,11 +606,3 @@ elif query.data.startswith("setgs"):
 
         # Update the message with the new button layout
         await query.message.edit_reply_markup(InlineKeyboardMarkup(buttons))
-
-
-
-
-
-
-
-
